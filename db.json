@@ -1,0 +1,25 @@
+{
+  "expenses": [
+    {
+      "id": "6e62",
+      "category": "Groceries",
+      "description": "Baking Flour, Cooking oil, eggs",
+      "amount": "1700",
+      "date": "2024-07-16"
+    },
+    {
+      "id": "8474",
+      "category": "Personal Care",
+      "description": "face wash",
+      "amount": "3000",
+      "date": "2024-07-14"
+    },
+    {
+      "id": "40ff",
+      "category": "Transport",
+      "description": "uber",
+      "amount": "570",
+      "date": "2024-07-12"
+    }
+  ]
+}

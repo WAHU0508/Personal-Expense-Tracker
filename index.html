@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bucks Buddy</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body>
+    <header>
+        <h1 id="appName">&#8492&#8492 Bucks Buddy</h1>
+        <p>About</p>
+        <p>Add Expenses</p>
+        <p>View Expenses</p>
+        <p>Contact Us</p>
+        <p>FAQs</p>
+    </header>
+    <div class="content">
+        <main>
+            <div class="userInfo">
+                <div class="edit">
+                    <p id="usersName">Name: <span id="userName">Sharon Wahu</p>
+                </div>
+                <h2 id="currentBudget">Current Budget:</h2>
+                <h2 id="currentDate">Date:</h2>
+            </div>
+            <section id="addExpensesSection" class="hidden">
+                <h4>Add Expenses</h4>
+                <form id="addExpenseForm">
+                    <select class="form-select" id="formSelect" aria-label="Default select example" required>
+                        <option selected>Select Expense Category</option>
+                        <option value="1">Groceries</option>
+                        <option value="2">Transport</option>
+                        <option value="3">Personal Care</option>
+                        <option value="4">Entertainment</option>
+                        <option value="5">Utilities</option>
+                        <option value="6">Other</option>
+                    </select>
+                    <label for="description">Description: </label>
+                    <input type="text" id="description" name="description" placeholder="Description" required>
+
+                    <label for="amount">Amount: </label>
+                    <input type="number" id="amount" name="amount" placeholder="Amount Spent" required>
+
+                    <label for="date">Date: </label>
+                    <input type="date" id="date" name="date" placeholder="Date" required>
+
+                    <button type="submit" id="expenseBtn">Save Expense</button>
+                </form>
+            </section>
+            <section id="viewExpensesSection" class="hidden">
+                <h4>View Expenses</h4>
+                <div class="table-actions">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="sortButton"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Sort
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="sortButton">
+                            <li><a class="dropdown-item" href="#" data-sort="date">By Date</a></li>
+                            <li><a class="dropdown-item" href="#" data-sort="amount">By Amount</a></li>
+                            <li><a class="dropdown-item" href="#" data-sort="category">By Category</a></li>
+                        </ul>
+                    </div>
+                    <button id="deleteButton" disabled>Delete</button>
+                </div>
+                <div id="expensesTable">
+                    <table id="table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script type="text/javascript" src="./src/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const addExpensBtn = document.getElementById('expenseBtn')
+    const addExpensesSection = document.getElementById('addExpensesSection')
+    const addExpenseForm = document.getElementById('addExpenseForm')
+    const viewExpensesSection = document.getElementById('viewExpensesSection')
+    const expensesList = document.getElementById('expensesList')
+    const deleteButton = document.getElementById('deleteButton')
+    const sortButton = document.querySelector('#sortButton');
+    const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
+
+    displayCurrentdate();
+    editUserName();
+    fetchExpenses();
+    addExpenseForm.addEventListener('submit', handleSubmit)
+    deleteButton.addEventListener('click', deleteSelectedExpenses);
+    sortOptions.forEach(option => {
+        option.addEventListener('click', () => sortExpenses(option.dataset.sort));
+    });
+
+    let expenses = []
+    let selectedExpenses = []
+
+    function fetchExpenses() {
+        fetch('http://localhost:3000/expenses')
+            .then(res => res.json())
+            .then(expenses => {
+                this.expenses = expenses; // Store the fetched data in a variable
+                displayExpenses();
+            })
+            .catch(error => console.error(`Fetching Error: ${error}`))
+    }
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        const categorySelect = document.getElementById('formSelect');
+        const category = categorySelect.options[categorySelect.selectedIndex].text
+        const description = document.getElementById('description').value;
+        const amount = document.getElementById('amount').value;
+        const date = document.getElementById('date').value;
+
+        const newExpense = {
+            category,
+            description,
+            amount,
+            date
+        }
+        postExpenses(newExpense)
+        document.getElementById('description').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('date').value = '';
+        categorySelect.selectedIndex = 0;
+
+    }
+    function postExpenses(newExpense) {
+        fetch('http://localhost:3000/expenses', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(newExpense)
+        })
+            .then(res => res.json())
+            .then(expense => displayExpenseItem(expense))
+            .catch(error => console.error(`Posting Error: ${error}`))
+    }
+    function displayExpenseItem(expense) {
+        const table = document.querySelector('table')
+
+        const tableBody = document.createElement('tr')
+        tableBody.dataset.id = expense.id
+
+        const selectCell = document.createElement('td')
+        const selectCheckbox = document.createElement('input')
+        selectCheckbox.type = 'checkbox';
+        selectCheckbox.addEventListener('change', (event) => {
+            toggleExpenseSelection(expense.id, event.target.checked);
+        });
+        selectCell.appendChild(selectCheckbox);
+        tableBody.appendChild(selectCell);
+
+        const categoryCell = document.createElement('td');
+        categoryCell.textContent = expense.category;
+        tableBody.appendChild(categoryCell);
+
+        const descriptionCell = document.createElement('td');
+        descriptionCell.textContent = expense.description;
+        tableBody.appendChild(descriptionCell);
+
+        const amountCell = document.createElement('td');
+        amountCell.textContent = expense.amount;
+        tableBody.appendChild(amountCell);
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = expense.date;
+        tableBody.appendChild(dateCell);
+
+        table.appendChild(tableBody)
+    }
+
+    function toggleExpenseSelection(expenseId, isSelected) {
+        if (isSelected) {
+            selectedExpenses.push(expenseId);
+        } else {
+            const index = selectedExpenses.indexOf(expenseId);
+            if (index !== -1) {
+                selectedExpenses.splice(index, 1);
+            }
+        }
+        deleteButton.disabled = selectedExpenses.length === 0;
+    }
+
+    function deleteSelectedExpenses() {
+        selectedExpenses.forEach(expenseId => {
+            const row = table.querySelector(`tr[data-id="${expenseId}"]`);
+            deleteExpense(expenseId, row);
+        });
+        selectedExpenses = [];
+        deleteButton.disabled = true;
+    }
+
+    function deleteExpense(expenseId, row) {
+        try {
+            fetch(`http://localhost:3000/expenses/${expenseId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(() => {
+                row.remove();
+            })
+            .catch(error => {
+                console.error(`Deleting Error: ${error}`);
+                alert('Error deleting expense. Please try again later.');
+            });
+        } catch (error) {
+            console.error(`Error occurred: ${error}`);
+            alert('An error occurred. Please try again later.');
+        }
+    }
+
+    function displayCurrentdate() {
+        const currentDate = document.getElementById('currentDate')
+        //Creating the date object
+        const date = new Date();
+        //Format the date
+        const formattedDate = new Intl.DateTimeFormat('en-US').format(date)
+        //Display current date in the page
+        currentDate.textContent = `Date: ${formattedDate}`
+    }
+
+    function editUserName() {
+        //get username element
+        const userName = document.getElementById('userName')
+        //check if there is a stored name in local storage
+        const storedName = localStorage.getItem('userName');
+        if (storedName) {
+            //if there is a stored name display it
+            userName.textContent = storedName;
+        }
+        //add a double click event listener to edit the name
+        userName.addEventListener('dblclick', (e) => {
+            //create an input element
+            const editName = document.createElement('input')
+            editName.type = 'text'
+            editName.value = userName.textContent;
+            userName.replaceWith(editName)
+            // Add a keypress event listener to the input element
+            editName.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const newval = editName.value;
+                    if (newval) {
+                        editName.replaceWith(newval)
+                        localStorage.setItem('userName', newval);
+                    }
+                    else {
+                        editName.replaceWith(userName);
+                    }
+                }
+            })
+        })
+    }
+
+    function sortExpenses(sortOption) {
+        switch (sortOption) {
+            case 'date':
+                this.expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                break;
+            case 'amount':
+                this.expenses.sort((a, b) => a.amount - b.amount);
+                break;
+            case 'category':
+                this.expenses.sort((a, b) => a.category.localeCompare(b.category));
+                break;
+        }
+        displayExpenses();
+        // Write the sorted data back to the db.json file
+        fetch('http://localhost:3000/expenses', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(this.expenses)
+        })
+        .then(res => res.json())
+        .catch(error => console.error(`Writing Error: ${error}`))
+    }
+    
+    function displayExpenses() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = ''; // Clear the previous table
+        this.expenses.forEach(expense => displayExpenseItem(expense));
+    }
+
+    function deleteExpense(expenseId, row) {
+        try {
+            fetch(`http://localhost:3000/expenses/${expenseId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(() => {
+                row.remove();
+            })
+            .catch(error => {
+                console.error(`Deleting Error: ${error}`);
+                alert('Error deleting expense. Please try again later.');
+            });
+        } catch (error) {
+            console.error(`Error occurred: ${error}`);
+            alert('An error occurred. Please try again later.');
+        }
+    }
+})
+
+Delete previous table elements and display sorted table items only
