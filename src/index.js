@@ -7,17 +7,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteButton = document.getElementById('deleteButton')
     const sortButton = document.querySelector('#sortButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
-
+    
     displayCurrentdate();
     editUserName();
     fetchExpenses();
     addExpenseForm.addEventListener('submit', handleSubmit)
     deleteButton.addEventListener('click', deleteSelectedExpenses);
+    sortButton.addEventListener('click', () => {
+        const sortOption = document.querySelector('#sortButton + .dropdown-menu a.active')
+        if (sortOption) {
+            sortExpenses(sortOption.dataset.sort)
+        }
+    })
+
     sortOptions.forEach(option => {
-        option.addEventListener('click', () => sortExpenses(option.dataset.sort));
-    });
+        option.addEventListener('click', () => {
+            const activeOption = document.querySelector('#sortButton + .dropdown-menu a.active')
+            if (activeOption) {
+                activeOption.classList.remove('active')
+            }
+            option.classList.add('active')
+            sortExpenses(option.dataset.sort)
+        })
+    })
+
+    function sortExpenses(sortBy) {
+        const tableBody = document.getElementById('tableBody')
+        const rows = Array.from(tableBody.getElementsByTagName('tr'))
+
+        rows.sort((a, b) => {
+            const cellA = a.getElementsByTagName('td')[sortBy === 'amount' ? 3 : sortBy === 'date' ? 4 : 1]
+            const cellB = b.getElementsByTagName('td')[sortBy === 'amount' ? 3 : sortBy === 'date' ? 4 : 1]
+            const valueA = sortBy === 'amount' ? parseFloat(cellA.textContent) : sortBy === 'date' ? cellA.textContent : cellA.textContent.tolowerCase();
+            const valueB = sortBy === 'amount' ? parseFloat(cellB.textContent) : sortBy === 'date' ? cellB.textContent : cellB.textContent.tolowerCase();
+            
+            if (valueA < valueB) return -1;
+            if (valueA > valueB) return 1;
+            return 0;
+        })
+        rows.forEach(row => tableBody.appendChild(row))
+    }
 
     let selectedExpenses = []
+
 
     function fetchExpenses() {
         fetch('http://localhost:3000/expenses')
