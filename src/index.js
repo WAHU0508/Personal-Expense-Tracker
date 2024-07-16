@@ -7,57 +7,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteButton = document.getElementById('deleteButton')
     const sortButton = document.querySelector('#sortButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
-    
+
     displayCurrentdate();
     editUserName();
     fetchExpenses();
     addExpenseForm.addEventListener('submit', handleSubmit)
     deleteButton.addEventListener('click', deleteSelectedExpenses);
-    sortButton.addEventListener('click', () => {
-        const sortOption = document.querySelector('#sortButton + .dropdown-menu a.active')
-        if (sortOption) {
-            sortExpenses(sortOption.dataset.sort)
-        }
-    })
-
     sortOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            const activeOption = document.querySelector('#sortButton + .dropdown-menu a.active')
-            if (activeOption) {
-                activeOption.classList.remove('active')
-            }
-            option.classList.add('active')
-            sortExpenses(option.dataset.sort)
-        })
-    })
-
-    function sortExpenses(sortBy) {
-        const tableBody = document.getElementById('tableBody')
-        const rows = Array.from(tableBody.getElementsByTagName('tr'))
-
-        rows.sort((a, b) => {
-            const cellA = a.getElementsByTagName('td')[sortBy === 'amount' ? 3 : sortBy === 'date' ? 4 : 1]
-            const cellB = b.getElementsByTagName('td')[sortBy === 'amount' ? 3 : sortBy === 'date' ? 4 : 1]
-            const valueA = sortBy === 'amount' ? parseFloat(cellA.textContent) : sortBy === 'date' ? cellA.textContent : cellA.textContent.tolowerCase();
-            const valueB = sortBy === 'amount' ? parseFloat(cellB.textContent) : sortBy === 'date' ? cellB.textContent : cellB.textContent.tolowerCase();
-            
-            if (valueA < valueB) return -1;
-            if (valueA > valueB) return 1;
-            return 0;
-        })
-        rows.forEach(row => tableBody.appendChild(row))
-    }
+        option.addEventListener('click', (e) => sortExpenses(e.target.dataset.sort));
+    });
 
     let selectedExpenses = []
-
+    let expenses = []
 
     function fetchExpenses() {
         fetch('http://localhost:3000/expenses')
-        .then(res => res.json())
-        .then(expenses => {
-            expenses.forEach(expense => displayExpenseItem(expense))
-        })
-        .catch(error => console.error(`Fetching Error: ${error}`))
+            .then(res => res.json())
+            .then(expenses => {
+                this.expenses = expenses; // Store the fetched data in a variable
+                displayExpenses();
+            })
+            .catch(error => console.error(`Fetching Error: ${error}`))
+    }
+
+    function sortExpenses(sortOption) {
+        switch (sortOption) {
+            case 'dateN':
+                this.expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                break;
+            case 'dateO':
+                this.expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                break;
+            case 'amountL':
+                this.expenses.sort((a, b) => a.amount - b.amount);
+                break;
+            case 'amountH':
+                this.expenses.sort((a, b) => b.amount - a.amount);
+                break;
+            case 'category':
+                this.expenses.sort((a, b) => a.category.localeCompare(b.category));
+                break;
+        }
+        displayExpenses();
+    }
+
+    function displayExpenses() {
+        const table = document.querySelector('table');
+        table.innerHTML = ' '
+        this.expenses.forEach(expense => {displayExpenseItem(expense)})
     }
 
     function handleSubmit(event) {
@@ -96,7 +93,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     function displayExpenseItem(expense) {
         const table = document.querySelector('table')
+        const thead = document.createElement('thead')
+        thead.innerHTML = `
+             <tr>
+                <th></th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+        `
+        table.appendChild(thead)
 
+        const tbody = document.createElement('tbody')
         const tableBody = document.createElement('tr')
         tableBody.dataset.id = expense.id
 
@@ -125,7 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         dateCell.textContent = expense.date;
         tableBody.appendChild(dateCell);
 
-        table.appendChild(tableBody)
+        tbody.appendChild(tableBody)
+        table.appendChild(tbody)
+        
     }
 
     function toggleExpenseSelection(expenseId, isSelected) {
@@ -213,5 +224,4 @@ document.addEventListener('DOMContentLoaded', () => {
             })
         })
     }
-    
 })

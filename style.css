@@ -151,7 +151,6 @@ body {
   tr:hover {
     background-color: #f0f0e8;
   }
-
   .table-actions {
     display: flex;
     flex-direction: row;

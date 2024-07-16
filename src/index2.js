@@ -182,3 +182,96 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     }
 })
+
+if (category && description && amount && date) {
+            const table = document.querySelector('table')
+
+            if (!table.querySelector('thead')) {
+                const thead = document.createElement('thead')
+        table.appendChild(thead)
+
+        const tr = document.createElement('tr')
+
+        const th = document.createElement('th')
+        th.textContent = ''
+        const th1 = document.createElement('th')
+        th1.textContent = 'Category'
+        const th2 = document.createElement('th')
+        th2.textContent = 'Description'
+        const th3 = document.createElement('th')
+        th3.textContent = 'Amount'
+        const th4 = document.createElement('th')
+        th4.textContent = 'Date'
+
+        tr.appendChild(th)
+        tr.appendChild(th1)
+        tr.appendChild(th2)
+        tr.appendChild(th3)
+        tr.appendChild(th4)
+        thead.appendChild(tr)
+        table.appendChild(thead)
+        }
+    
+        if (!table.querySelector('tbody')) {
+            const tbody = document.createElement('tbody')
+        table.appendChild('tbody')
+
+        }
+        let tbody = table.querySelector('tbody')
+        let row = document.createElement('tr')
+
+        const selectCell = document.createElement('td')
+        const selectCheckbox = document.createElement('input')
+        selectCheckbox.type = 'checkbox';
+        selectCheckbox.addEventListener('change', (event) => {
+            toggleExpenseSelection(expense.id, event.target.checked);
+        });
+        selectCell.appendChild(selectCheckbox);
+        row.appendChild(selectCell);
+
+        const categoryCell = document.createElement('td');
+        categoryCell.textContent = expense.category;
+        row.appendChild(categoryCell);
+
+        const descriptionCell = document.createElement('td');
+        descriptionCell.textContent = expense.description;
+        row.appendChild(descriptionCell);
+
+        const amountCell = document.createElement('td');
+        amountCell.textContent = expense.amount;
+        row.appendChild(amountCell);
+
+        const dateCell = document.createElement('td');
+        dateCell.textContent = expense.date;
+        row.appendChild(dateCell);
+
+        tbody.appendChild(row)
+
+        }
+
+
+        const thead = document.createElement('thead')
+        table.appendChild(thead)
+
+        const tr = document.createElement('tr')
+        thead.appendChild(tr)
+
+        const th = document.createElement('th')
+        th.textContent = ''
+        thead.appendChild(th)
+
+        const th1 = document.createElement('th')
+        th1.textContent = 'Category'
+        thead.appendChild(th1)
+
+        const th2 = document.createElement('th')
+        th2.textContent = 'Description'
+        thead.appendChild(th2)
+
+        const th3 = document.createElement('th')
+        th3.textContent = 'Amount'
+        thead.appendChild(th3)
+
+        const th4 = document.createElement('th')
+        th4.textContent = 'Date'
+        thead.appendChild(th4)
