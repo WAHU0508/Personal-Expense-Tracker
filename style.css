@@ -5,7 +5,10 @@ body {
     padding: 0;
     background-color: #f5f5f0;
   }
-  
+ main {
+  display: flex;
+  flex-direction: row;
+ } 
   /* Header Styles */
   header {
     background-color: #f0f0e8;
@@ -38,14 +41,35 @@ body {
   
   /* Main Content Styles */
   .content {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 40px auto;
     padding: 20px;
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
-  
+
+  .FAQs {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #d3d3d3;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(175, 153, 153, 0.1);
+  }
+  footer {
+    background-color: #f0f0e8;
+    color: #333;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #expenseChart {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+  }
   .UserInfo {
     display: flex;
     justify-content: space-between;
@@ -62,7 +86,7 @@ body {
     font-weight: bold;
   }
   
-  #currentBudget, #currentDate, #usersName {
+  #currentExpense, #currentDate, #usersName {
     font-size: 16px;
     font-weight: bold;
   }
@@ -125,8 +149,24 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
   }
-  
+
+  #expensesSummary {
+    background-color: #f5f5f0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 100px;
+    margin-left: 10px;
+    width: 500px;
+    height: max-content;
+  }
+  .viewSummary {
+    width: 100%;
+    text-align: left;
+
+  }
   #expensesTable {
     width: 100%;
     border-collapse: collapse;
@@ -159,4 +199,13 @@ body {
   #sortButton + .dropdown-menu a.active {
     font-weight: bold;
     background-color: #f1f1f1;
+  }
+  .exp {
+    margin-left: 15px;
+    list-style: circle;
+  }
+
+  .editing {
+    padding: 10px;
+    text-align: left;
   }

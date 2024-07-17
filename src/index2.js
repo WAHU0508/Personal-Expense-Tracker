@@ -275,3 +275,41 @@ if (category && description && amount && date) {
         const th4 = document.createElement('th')
         th4.textContent = 'Date'
         thead.appendChild(th4)
+
+        document.getElementById('description').value = '';
+        document.getElementById('amount').value = '';
+        document.getElementById('date').value = '';
+        categorySelect.selectedIndex = 0;
+
+        descriptionCell.addEventListener('dblclick', (e) => {
+            const editItem = document.createElement('input')
+            editItem.type = 'text'
+            editItem.value = descriptionCell.textContent
+            descriptionCell.replaceWith(editItem)
+            editItem.classList.add('td')
+
+            editItem.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const newval = editItem.value
+                    
+                    if (newval) {
+                        editItem.replaceWith(newval)
+                        editItem.classList.add('td')
+                        fetch(`http://localhost:3000/expenses/${expense.id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({description: newval})
+                        })
+                        .then(res => res.json())
+                        .then(() => {descriptionCell.textContent = newval})
+                    }
+                    else {
+                        editItem.replaceWith(descriptionCell)
+                        editItem.classList.add('td')
+                    }
+                }
+            })
+        })
