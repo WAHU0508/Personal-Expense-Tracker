@@ -1,24 +1,17 @@
 {
   "expenses": [
     {
-      "id": "6e62",
-      "category": "Groceries",
-      "description": "Baking Flour, Cooking oil, eggs",
-      "amount": "3000",
-      "date": "2024-07-16"
-    },
-    {
       "id": "3772",
       "category": "Transport",
       "description": "Uber",
-      "amount": "500",
+      "amount": "1000",
       "date": "2024-07-09"
     },
     {
       "id": "fabe",
       "category": "Entertainment",
       "description": "Netflix",
-      "amount": "1500",
+      "amount": "2",
       "date": "2024-07-12"
     },
     {
@@ -39,13 +32,13 @@
       "id": "eef6",
       "category": "Other",
       "description": "Lending",
-      "amount": "1000",
+      "amount": "2000",
       "date": "2024-07-16"
     },
     {
       "id": "a2ca",
       "category": "Entertainment",
-      "description": "Spotify",
+      "description": "Showmax",
       "amount": "300",
       "date": "2024-07-09"
     },

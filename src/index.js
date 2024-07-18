@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    //Get Elements from the html
     const addExpenseForm = document.getElementById('addExpenseForm');
     const deleteButton = document.getElementById('deleteButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
@@ -7,12 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const budgetInput = document.getElementById('budgetInput');
     const remainingBudgetDisplay = document.getElementById('remainingBudget');
 
+    //Store selected expenses to delete them, expenses keyed in and initialize budget limit
     let selectedExpenses = [];
     let expenses = [];
-    let monthlyBudget = 0;
+    let monthlyBudget = 20000;
 
+    // Fetch expenses and display them
     fetchExpenses();
+    // Display current date
     displayCurrentDate();
+
+    // Add event listeners for form submissions, delete button, sort options, and budget form
     addExpenseForm.addEventListener('submit', handleSubmit);
     deleteButton.addEventListener('click', deleteSelectedExpenses);
     sortOptions.forEach(option => {
@@ -20,8 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     budgetForm.addEventListener('submit', handleBudgetSubmit);
 
+    // Initialize the expense chart
     initializeChart();
 
+    // Fetch expenses from server
     function fetchExpenses() {
         fetch('http://localhost:3000/expenses')
             .then(res => res.json())
@@ -33,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(`Fetching Error: ${error}`));
     }
 
+    // Calculate total expenditure and get total expenses filtered by category
     function totalExpenditure(category = null) {
         return new Promise((resolve, reject) => {
             fetch('http://localhost:3000/expenses')
@@ -52,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Update summary information for total expenses for all categories
     function updateSummary() {
         totalExpenditure().then(total => {
             document.getElementById('currentExpense').textContent = `Total expense: $${total.toFixed(2)}`;
@@ -79,11 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Calculate and display the remaining budget
     function calculateRemainingBudget(totalExpenses) {
         const remainingBudget = monthlyBudget - totalExpenses;
         remainingBudgetDisplay.textContent = `Remaining Budget: $${remainingBudget.toFixed(2)}`;
     }
 
+    // Sort expenses based on selected option and display them
     function sortExpenses(sortOption) {
         switch (sortOption) {
             case 'dateN':
@@ -105,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         displayExpenses();
     }
 
+    // Display the sort expenses in the table
     function displayExpenses() {
         const tbody = document.querySelector('table tbody');
         tbody.innerHTML = '';
@@ -117,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateChart(); // Update the chart after displaying expenses
     }
 
+    // Handle expense form submission
     function handleSubmit(event) {
         event.preventDefault();
         const categorySelect = document.getElementById('formSelect');
@@ -136,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addExpenseForm.reset();
     }
 
+    // Post new expense to server
     function postExpense(newExpense) {
         fetch('http://localhost:3000/expenses', {
             method: 'POST',
@@ -154,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(`Posting Error: ${error}`));
     }
 
+    // Create a table row for an expense
     function createExpenseRow(expense) {
         const row = document.createElement('tr');
         row.dataset.id = expense.id;
@@ -188,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return row;
     }
 
+    // Edit a table cell
     function editCell(cell, key, expense) {
         const oldValue = cell.textContent;
         const input = document.createElement('input');
@@ -211,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.focus();
     }
 
+    // Update an expense on the server once editing takes place
     function updateExpense(expenseId, updates) {
         fetch(`http://localhost:3000/expenses/${expenseId}`, {
             method: 'PATCH',
@@ -232,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(`Error updating expense: ${error}`));
     }
 
+    // Toggle the selection of an expense in order to delete entry
     function toggleExpenseSelection(expenseId, isSelected) {
         if (isSelected) {
             selectedExpenses.push(expenseId);
@@ -244,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteButton.disabled = selectedExpenses.length === 0;
     }
 
+    // Delete selected expenses
     function deleteSelectedExpenses() {
         selectedExpenses.forEach(expenseId => {
             deleteExpense(expenseId);
@@ -252,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteButton.disabled = true;
     }
 
+    // Update server when an entry is deleted by user
     function deleteExpense(expenseId) {
         fetch(`http://localhost:3000/expenses/${expenseId}`, {
             method: 'DELETE'
@@ -264,6 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(`Error deleting expense: ${error}`));
     }
 
+    // Display the current date
     function displayCurrentDate() {
         const currentDate = document.getElementById('currentDate');
         const date = new Date();
@@ -271,20 +293,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentDate.textContent = `Date: ${formattedDate}`;
     }
 
-    function handleBudgetSubmit(event) {
-        event.preventDefault();
-        const newBudget = parseFloat(budgetInput.value);
-        if (!isNaN(newBudget) && newBudget >= 0) {
-            monthlyBudget = newBudget;
-            updateSummary();
-        } else {
-            alert('Please enter a valid monthly budget.');
-        }
-        budgetForm.reset();
-    }
-
+    // Initialize the expense chart. Sections of the pie chart initialization
     function initializeChart() {
         const categories = ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'];
+        /*calculate the total amounts for each expense category by filtering 
+        the expenses and then reducing them to get the sum*/
         const amounts = categories.map(category =>
             expenses.filter(expense => expense.category === category)
                 .reduce((total, expense) => total + parseFloat(expense.amount), 0)
@@ -331,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Update the expense chart
     function updateChart() {
         const categories = ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'];
         const amounts = categories.map(category =>
