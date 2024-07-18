@@ -1,7 +1,7 @@
 # Sharon_Gikenye
-# Expense Tracker
+# Bucks Buddy - Your Personal Expense Tracker
 
-Expense Tracker is a web application that helps users manage and track their expenses. Users can add expenses, categorize them, and set a monthly budget. The application also provides a summary of expenses and displays the remaining budget.
+Bucks Buddy is a web application that helps users manage and track their expenses. Users can add expenses and categorize them. The application also provides a summary of expenses and displays the remaining budget.
 
 ## Features
 
@@ -30,7 +30,7 @@ Expense Tracker is a web application that helps users manage and track their exp
 ## Contributing
 Contributions are welcome! Please fork the repository and create a pull request with your changes.
 
-> Acknowledgements
+## Acknowledgements
 > Bootstrap
 > Chart.js
 > JSON Server
