@@ -1,125 +1,126 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const addExpensBtn = document.getElementById('expenseBtn')
-    const addExpensesSection = document.getElementById('addExpensesSection')
-    const addExpenseForm = document.getElementById('addExpenseForm')
-    const viewExpensesSection = document.getElementById('viewExpensesSection')
-    const expensesList = document.getElementById('expensesList')
-    const deleteButton = document.getElementById('deleteButton')
-    const sortButton = document.querySelector('#sortButton');
+    const addExpenseForm = document.getElementById('addExpenseForm');
+    const deleteButton = document.getElementById('deleteButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
+    const expenseChart = document.getElementById('expenseChart').getContext('2d');
+    const budgetForm = document.getElementById('budgetForm');
+    const budgetInput = document.getElementById('budgetInput');
+    const remainingBudgetDisplay = document.getElementById('remainingBudget');
 
-
+    let selectedExpenses = [];
+    let expenses = [];
+    let monthlyBudget = 0;
 
     fetchExpenses();
-    displayCurrentdate();
-    addExpenseForm.addEventListener('submit', handleSubmit)
+    displayCurrentDate();
+    addExpenseForm.addEventListener('submit', handleSubmit);
     deleteButton.addEventListener('click', deleteSelectedExpenses);
     sortOptions.forEach(option => {
         option.addEventListener('click', (e) => sortExpenses(e.target.dataset.sort));
     });
-    summary()
-    let selectedExpenses = []
-    let expenses = []
+    budgetForm.addEventListener('submit', handleBudgetSubmit);
+
+    initializeChart();
+
     function fetchExpenses() {
         fetch('http://localhost:3000/expenses')
             .then(res => res.json())
-            .then(expenses => {
-                this.expenses = expenses; // Store the fetched data in a variable
+            .then(data => {
+                expenses = data; // Store the fetched data
                 displayExpenses();
+                updateSummary();
             })
-            .catch(error => console.error(`Fetching Error: ${error}`))
+            .catch(error => console.error(`Fetching Error: ${error}`));
     }
 
     function totalExpenditure(category = null) {
         return new Promise((resolve, reject) => {
             fetch('http://localhost:3000/expenses')
                 .then(res => res.json())
-                .then(expenses => {
-                    let filteredExpenses = expenses;
+                .then(data => {
+                    let filteredExpenses = data;
                     if (category !== null) {
-                        filteredExpenses = expenses.filter(expense => expense.category === category);
+                        filteredExpenses = data.filter(expense => expense.category === category);
                     }
-
-                    const totalExpenses = filteredExpenses.reduce((total, expense) => {
-                        return total + parseFloat(expense.amount);
-                    }, 0);
-
-                    resolve(totalExpenses);
+                    const total = filteredExpenses.reduce((acc, expense) => acc + parseFloat(expense.amount), 0);
+                    resolve(total);
                 })
                 .catch(error => {
-                    console.error(`Error getting total:`, error);
+                    console.error(`Error getting total: ${error}`);
                     reject(error);
                 });
         });
     }
 
-    function summary() {
+    function updateSummary() {
         totalExpenditure().then(total => {
-            const currentExpense = document.getElementById('currentExpense');
-            currentExpense.textContent = `Total expense: $${total.toFixed(2)}`;
+            document.getElementById('currentExpense').textContent = `Total expense: $${total.toFixed(2)}`;
+            document.getElementById('totalSum').textContent = `Total expense: $${total.toFixed(2)}`;
+            calculateRemainingBudget(total);
+        });
 
-            const totalSum = document.getElementById('totalSum');
-            totalSum.textContent = `Total expense: $${total.toFixed(2)}`;
-
-            totalExpenditure('Groceries').then(groceriesTotal => {
-                const groceries = document.getElementById('groceries');
-                groceries.textContent = `Total Groceries: $${groceriesTotal.toFixed(2)}`;
-            });
-            totalExpenditure('Transport').then(transportTotal => {
-                const transport = document.getElementById('transport');
-                transport.textContent = `Total Transport: $${transportTotal.toFixed(2)}`;
-            });
-            totalExpenditure('Personal Care').then(personalCareTotal => {
-                const personalCare = document.getElementById('personal-care');
-                personalCare.textContent = `Total Personal Care: $${personalCareTotal.toFixed(2)}`;
-            });
-            totalExpenditure('Entertainment').then(entertainmentTotal => {
-                const entertainment = document.getElementById('entertainment');
-                entertainment.textContent = `Total Entertainment: $${entertainmentTotal.toFixed(2)}`;
-            });
-            totalExpenditure('Utilities').then(utilitiesTotal => {
-                const utilities = document.getElementById('utilities');
-                utilities.textContent = `Total Utilities: $${utilitiesTotal.toFixed(2)}`;
-            });
-            totalExpenditure('Other').then(otherTotal => {
-                const other = document.getElementById('other');
-                other.textContent = `Total other: $${otherTotal.toFixed(2)}`;
-            });
+        totalExpenditure('Groceries').then(groceriesTotal => {
+            document.getElementById('groceries').textContent = `Groceries: $${groceriesTotal.toFixed(2)}`;
+        });
+        totalExpenditure('Transport').then(transportTotal => {
+            document.getElementById('transport').textContent = `Transport: $${transportTotal.toFixed(2)}`;
+        });
+        totalExpenditure('Personal Care').then(personalCareTotal => {
+            document.getElementById('personal-care').textContent = `Personal Care: $${personalCareTotal.toFixed(2)}`;
+        });
+        totalExpenditure('Entertainment').then(entertainmentTotal => {
+            document.getElementById('entertainment').textContent = `Entertainment: $${entertainmentTotal.toFixed(2)}`;
+        });
+        totalExpenditure('Utilities').then(utilitiesTotal => {
+            document.getElementById('utilities').textContent = `Utilities: $${utilitiesTotal.toFixed(2)}`;
+        });
+        totalExpenditure('Other').then(otherTotal => {
+            document.getElementById('other').textContent = `Other: $${otherTotal.toFixed(2)}`;
         });
     }
-    
+
+    function calculateRemainingBudget(totalExpenses) {
+        const remainingBudget = monthlyBudget - totalExpenses;
+        remainingBudgetDisplay.textContent = `Remaining Budget: $${remainingBudget.toFixed(2)}`;
+    }
+
     function sortExpenses(sortOption) {
         switch (sortOption) {
             case 'dateN':
-                this.expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
                 break;
             case 'dateO':
-                this.expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
                 break;
             case 'amountL':
-                this.expenses.sort((a, b) => a.amount - b.amount);
+                expenses.sort((a, b) => a.amount - b.amount);
                 break;
             case 'amountH':
-                this.expenses.sort((a, b) => b.amount - a.amount);
+                expenses.sort((a, b) => b.amount - a.amount);
                 break;
             case 'category':
-                this.expenses.sort((a, b) => a.category.localeCompare(b.category));
+                expenses.sort((a, b) => a.category.localeCompare(b.category));
                 break;
         }
         displayExpenses();
     }
 
     function displayExpenses() {
-        const table = document.querySelector('table');
-        const tbody = table.querySelector('tbody')
-        tbody.innerHTML = ' '
-        this.expenses.forEach(expense => { displayExpenseItem(expense) })
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = '';
+
+        expenses.forEach(expense => {
+            const row = createExpenseRow(expense);
+            tbody.appendChild(row);
+        });
+
+        updateChart(); // Update the chart after displaying expenses
     }
 
     function handleSubmit(event) {
         event.preventDefault();
         const categorySelect = document.getElementById('formSelect');
-        const category = categorySelect.options[categorySelect.selectedIndex].text
+        const category = categorySelect.options[categorySelect.selectedIndex].text;
         const description = document.getElementById('description').value;
         const amount = document.getElementById('amount').value;
         const date = document.getElementById('date').value;
@@ -129,13 +130,13 @@ document.addEventListener('DOMContentLoaded', () => {
             description,
             amount,
             date
-        }
-        postExpenses(newExpense)
+        };
 
-        addExpenseForm.reset()
-
+        postExpense(newExpense);
+        addExpenseForm.reset();
     }
-    function postExpenses(newExpense) {
+
+    function postExpense(newExpense) {
         fetch('http://localhost:3000/expenses', {
             method: 'POST',
             headers: {
@@ -145,176 +146,90 @@ document.addEventListener('DOMContentLoaded', () => {
             body: JSON.stringify(newExpense)
         })
             .then(res => res.json())
-            .then(expense => displayExpenseItem(expense))
-            .catch(error => console.error(`Posting Error: ${error}`))
+            .then(expense => {
+                expenses.push(expense); // Add new expense to local array
+                displayExpenses();
+                updateSummary(); // Update summary after adding new expense
+            })
+            .catch(error => console.error(`Posting Error: ${error}`));
     }
 
-    function displayExpenseItem(expense) {
-        const table = document.querySelector('table')
-        const tbody = table.querySelector('tbody')
-        const tableBody = document.createElement('tr')
-        tableBody.dataset.id = expense.id
+    function createExpenseRow(expense) {
+        const row = document.createElement('tr');
+        row.dataset.id = expense.id;
 
-        const selectCell = document.createElement('td')
-        const selectCheckbox = document.createElement('input')
-        selectCheckbox.type = 'checkbox';
-        selectCheckbox.addEventListener('change', (event) => {
-            toggleExpenseSelection(expense.id, event.target.checked);
-        });
-        selectCell.appendChild(selectCheckbox);
-        tableBody.appendChild(selectCell);
+        const checkboxCell = document.createElement('td');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.addEventListener('change', () => toggleExpenseSelection(expense.id, checkbox.checked));
+        checkboxCell.appendChild(checkbox);
+        row.appendChild(checkboxCell);
 
         const categoryCell = document.createElement('td');
         categoryCell.textContent = expense.category;
-        categoryCell.addEventListener('dblclick', editCCell)
-        tableBody.appendChild(categoryCell);
+        categoryCell.addEventListener('dblclick', () => editCell(categoryCell, 'category', expense));
+        row.appendChild(categoryCell);
 
         const descriptionCell = document.createElement('td');
         descriptionCell.textContent = expense.description;
-        descriptionCell.addEventListener('dblclick', editDCell)
-        tableBody.appendChild(descriptionCell);
+        descriptionCell.addEventListener('dblclick', () => editCell(descriptionCell, 'description', expense));
+        row.appendChild(descriptionCell);
 
         const amountCell = document.createElement('td');
         amountCell.textContent = expense.amount;
-        amountCell.addEventListener('dblclick', editACell)
-        tableBody.appendChild(amountCell);
+        amountCell.addEventListener('dblclick', () => editCell(amountCell, 'amount', expense));
+        row.appendChild(amountCell);
 
         const dateCell = document.createElement('td');
         dateCell.textContent = expense.date;
-        dateCell.addEventListener('dblclick', editDateCell)
-        tableBody.appendChild(dateCell);
+        dateCell.addEventListener('dblclick', () => editCell(dateCell, 'date', expense));
+        row.appendChild(dateCell);
 
-        tbody.appendChild(tableBody)
-        function editDCell() {
-            const editItem = document.createElement('input')
-            editItem.type = 'text'
-            editItem.value = descriptionCell.textContent
-            descriptionCell.replaceWith(editItem)
+        return row;
+    }
 
-            editItem.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const newval = editItem.value
+    function editCell(cell, key, expense) {
+        const oldValue = cell.textContent;
+        const input = document.createElement('input');
+        input.type = key === 'amount' ? 'number' : key === 'date' ? 'date' : 'text';
+        input.value = oldValue;
 
-                    if (newval) {
-                        editItem.replaceWith(newval)
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const newValue = input.value.trim();
+                if (newValue !== oldValue) {
+                    updateExpense(expense.id, { [key]: newValue });
+                } else {
+                    cell.textContent = newValue;
+                    input.replaceWith(cell);
+                }
+            }
+        });
 
-                        fetch(`http://localhost:3000/expenses/${expense.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ description: newval })
-                        })
-                            .then(res => res.json())
-                            .then(() => { descriptionCell.textContent = newval })
-                    }
-                    else {
-                        editItem.replaceWith(descriptionCell)
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+    }
 
-                    }
+    function updateExpense(expenseId, updates) {
+        fetch(`http://localhost:3000/expenses/${expenseId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(updates)
+        })
+            .then(res => res.json())
+            .then(updatedExpense => {
+                const index = expenses.findIndex(expense => expense.id === updatedExpense.id);
+                if (index !== -1) {
+                    expenses[index] = updatedExpense;
+                    displayExpenses();
+                    updateSummary(); // Update summary after updating expense
                 }
             })
-        }
-        function editACell() {
-            const editItem = document.createElement('input')
-            editItem.type = 'number'
-            editItem.value = amountCell.textContent
-            amountCell.replaceWith(editItem)
-            editItem.classList.add('td')
-
-            editItem.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const newval = editItem.value
-
-                    if (newval) {
-                        editItem.replaceWith(newval)
-                        fetch(`http://localhost:3000/expenses/${expense.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ amount: newval })
-                        })
-                            .then(res => res.json())
-                            .then(() => { amountCell.textContent = newval })
-                    }
-                    else {
-                        editItem.replaceWith(amountCell)
-                    }
-                }
-            })
-        }
-        function editCCell() {
-            const editItem = document.createElement('select');
-            editItem.innerHTML = `
-                <option selected>Select Expense Category</option>
-                <option value="1">Groceries</option>
-                <option value="2">Transport</option>
-                <option value="3">Personal Care</option>
-                <option value="4">Entertainment</option>
-                <option value="5">Utilities</option>
-                <option value="6">Other</option>
-            `;
-            editItem.className = 'form-select';
-            editItem.id = 'formSelect';
-            editItem.ariaLabel = 'Default select example';
-            editItem.value = categoryCell.textContent;
-            categoryCell.replaceWith(editItem);
-
-            editItem.addEventListener('change', () => {
-                const newval = editItem.options[editItem.selectedIndex].text;
-
-                if (newval) {
-                    const newCategoryCell = document.createElement('div');
-                    newCategoryCell.textContent = newval;
-                    editItem.replaceWith(newCategoryCell);
-
-                    fetch(`http://localhost:3000/expenses/${expense.id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({ category: newval }),
-                    })
-                        .then((res) => res.json())
-                        .then(() => {
-                            categoryCell.textContent = newval;
-                        });
-                }
-            });
-        }
-        function editDateCell() {
-            const editItem = document.createElement('input')
-            editItem.type = 'date'
-            editItem.value = dateCell.textContent
-            dateCell.replaceWith(editItem)
-
-            editItem.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const newval = editItem.value
-
-                    if (newval) {
-                        editItem.replaceWith(newval)
-                        fetch(`http://localhost:3000/expenses/${expense.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ date: newval })
-                        })
-                            .then(res => res.json())
-                            .then(() => { dateCell.textContent = newval })
-                    }
-                    else {
-                        editItem.replaceWith(dateCell)
-                    }
-                }
-            })
-        }
+            .catch(error => console.error(`Error updating expense: ${error}`));
     }
 
     function toggleExpenseSelection(expenseId, isSelected) {
@@ -331,116 +246,136 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deleteSelectedExpenses() {
         selectedExpenses.forEach(expenseId => {
-            const row = table.querySelector(`tr[data-id="${expenseId}"]`);
-            deleteExpense(expenseId, row);
+            deleteExpense(expenseId);
         });
         selectedExpenses = [];
         deleteButton.disabled = true;
     }
 
-    function deleteExpense(expenseId, row) {
-        try {
-            fetch(`http://localhost:3000/expenses/${expenseId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
+    function deleteExpense(expenseId) {
+        fetch(`http://localhost:3000/expenses/${expenseId}`, {
+            method: 'DELETE'
+        })
+            .then(() => {
+                expenses = expenses.filter(expense => expense.id !== expenseId);
+                displayExpenses();
+                updateSummary(); // Update summary after deleting expense
             })
-                .then(res => res.json())
-                .then(() => {
-                    row.remove();
-                })
-                .catch(error => {
-                    console.error(`Deleting Error: ${error}`);
-                    alert('Error deleting expense. Please try again later.');
-                });
-        } catch (error) {
-            console.error(`Error occurred: ${error}`);
-            alert('An error occurred. Please try again later.');
-        }
+            .catch(error => console.error(`Error deleting expense: ${error}`));
     }
 
-    function displayCurrentdate() {
-        const currentDate = document.getElementById('currentDate')
-        //Creating the date object
+    function displayCurrentDate() {
+        const currentDate = document.getElementById('currentDate');
         const date = new Date();
-        //Format the date
-        const formattedDate = new Intl.DateTimeFormat('en-US').format(date)
-        //Display current date in the page
-        currentDate.textContent = `Date: ${formattedDate}`
+        const formattedDate = new Intl.DateTimeFormat('en-US').format(date);
+        currentDate.textContent = `Date: ${formattedDate}`;
     }
 
-    function loadAndDisplayChart() {
-        // Fetch the JSON data
-        fetch('http://localhost:3000/expenses')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Fetched data:', data);
-                if (!Array.isArray(data)) {
-                    throw new Error('Invalid JSON structure');
-                }
+    function handleBudgetSubmit(event) {
+        event.preventDefault();
+        const newBudget = parseFloat(budgetInput.value);
+        if (!isNaN(newBudget) && newBudget >= 0) {
+            monthlyBudget = newBudget;
+            updateSummary();
+        } else {
+            alert('Please enter a valid monthly budget.');
+        }
+        budgetForm.reset();
+    }
 
-                // Calculate total expenses per category
-                const categoryTotals = data.reduce((acc, expense) => {
-                    acc[expense.category] = (acc[expense.category] || 0) + parseFloat(expense.amount);
-                    return acc;
-                }, {});
+    function initializeChart() {
+        const categories = ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'];
+        const amounts = categories.map(category =>
+            expenses.filter(expense => expense.category === category)
+                .reduce((total, expense) => total + parseFloat(expense.amount), 0)
+        );
 
-                console.log('Category Totals:', categoryTotals);
-
-                // Prepare data for Chart.js
-                const categories = Object.keys(categoryTotals);
-                const amounts = Object.values(categoryTotals);
-
-                // Create the pie chart
-                const ctx = document.getElementById('expenseChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: categories,
-                        datasets: [{
-                            data: amounts,
-                            backgroundColor: [
-                                '#FF6384',
-                                '#36A2EB',
-                                '#FFCE56',
-                                '#FF9F40',
-                                '#4BC0C0',
-                                '#9966FF'
-                            ]
-                        }]
+        const chart = new Chart(expenseChart, {
+            type: 'pie',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Total Expenses by Category',
+                    data: amounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
                     },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(tooltipItem) {
-                                        return `${categories[tooltipItem.dataIndex]}: $${amounts[tooltipItem.dataIndex].toFixed(2)}`;
-                                    }
-                                }
-                            }
-                        }
+                    title: {
+                        display: true,
+                        text: 'Total Expenses by Category'
                     }
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error.message);
-            });
+                }
+            }
+        });
     }
 
-    // Call the function to load and display the chart
-    loadAndDisplayChart();
+    function updateChart() {
+        const categories = ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'];
+        const amounts = categories.map(category =>
+            expenses.filter(expense => expense.category === category)
+                .reduce((total, expense) => total + parseFloat(expense.amount), 0)
+        );
 
-})
-
-
+        const chart = new Chart(expenseChart, {
+            type: 'pie',
+            data: {
+                labels: categories,
+                datasets: [{
+                    label: 'Total Expenses by Category',
+                    data: amounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Total Expenses by Category'
+                    }
+                }
+            }
+        });
+    }
+});

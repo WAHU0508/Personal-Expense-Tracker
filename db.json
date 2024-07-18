@@ -4,43 +4,57 @@
       "id": "6e62",
       "category": "Groceries",
       "description": "Baking Flour, Cooking oil, eggs",
-      "amount": "1700",
+      "amount": "3000",
       "date": "2024-07-16"
-    },
-    {
-      "id": "8474",
-      "category": "Personal Care",
-      "description": "face wash",
-      "amount": "2000",
-      "date": "2024-07-14"
     },
     {
       "id": "3772",
       "category": "Transport",
       "description": "Uber",
-      "amount": "850",
+      "amount": "500",
       "date": "2024-07-09"
     },
     {
-      "id": "757a",
+      "id": "fabe",
       "category": "Entertainment",
       "description": "Netflix",
       "amount": "1500",
-      "date": "2024-07-02"
+      "date": "2024-07-12"
     },
     {
-      "id": "83c9",
+      "id": "30aa",
+      "category": "Personal Care",
+      "description": "face wash",
+      "amount": "2500",
+      "date": "2024-07-18"
+    },
+    {
+      "id": "9732",
       "category": "Utilities",
-      "description": "Water",
+      "description": "water",
       "amount": "500",
-      "date": "2024-07-12"
+      "date": "2024-07-03"
     },
     {
-      "id": "2c0a",
+      "id": "eef6",
+      "category": "Other",
+      "description": "Lending",
+      "amount": "1000",
+      "date": "2024-07-16"
+    },
+    {
+      "id": "a2ca",
+      "category": "Entertainment",
+      "description": "Spotify",
+      "amount": "300",
+      "date": "2024-07-09"
+    },
+    {
+      "id": "f82d",
       "category": "Groceries",
-      "description": "potatoes",
-      "amount": "200",
-      "date": "2024-07-12"
+      "description": "Cereals",
+      "amount": "570",
+      "date": "2024-07-09"
     }
   ]
 }

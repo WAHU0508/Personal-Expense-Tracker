@@ -1,315 +1,227 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const addExpensBtn = document.getElementById('expenseBtn')
-    const addExpensesSection = document.getElementById('addExpensesSection')
-    const addExpenseForm = document.getElementById('addExpenseForm')
-    const viewExpensesSection = document.getElementById('viewExpensesSection')
-    const expensesList = document.getElementById('expensesList')
-    const deleteButton = document.getElementById('deleteButton')
-    const sortButton = document.querySelector('#sortButton');
+    const addExpenseForm = document.getElementById('addExpenseForm');
+    const deleteButton = document.getElementById('deleteButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
+    let selectedExpenses = [];
+    let expenses = [];
 
-    displayCurrentdate();
-    editUserName();
-    fetchExpenses();
-    addExpenseForm.addEventListener('submit', handleSubmit)
-    deleteButton.addEventListener('click', deleteSelectedExpenses);
-    sortOptions.forEach(option => {
-        option.addEventListener('click', () => sortExpenses(option.dataset.sort));
-    });
+    initialize();
 
-    let selectedExpenses = []
+    function initialize() {
+        fetchExpenses();
+        displayCurrentDate();
+        addExpenseForm.addEventListener('submit', handleSubmit);
+        deleteButton.addEventListener('click', deleteSelectedExpenses);
+        sortOptions.forEach(option => {
+            option.addEventListener('click', (e) => sortExpenses(e.target.dataset.sort));
+        });
+        summary();
+        loadAndDisplayChart();
+    }
 
     function fetchExpenses() {
         fetch('http://localhost:3000/expenses')
-        .then(res => res.json())
-        .then(expenses => {
-            expenses.forEach(expense => displayExpenseItem(expense))
-        })
-        .catch(error => console.error(`Fetching Error: ${error}`))
+            .then(res => res.json())
+            .then(data => {
+                expenses = data;
+                displayExpenses();
+            })
+            .catch(error => console.error(`Fetching Error: ${error}`));
+    }
+
+    function totalExpenditure(category = null) {
+        return new Promise((resolve, reject) => {
+            let filteredExpenses = category ? expenses.filter(expense => expense.category === category) : expenses;
+            const total = filteredExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+            resolve(total);
+        });
+    }
+
+    function summary() {
+        totalExpenditure().then(total => {
+            document.getElementById('currentExpense').textContent = `Total expense: $${total.toFixed(2)}`;
+            document.getElementById('totalSum').textContent = `Total expense: $${total.toFixed(2)}`;
+        });
+
+        ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'].forEach(category => {
+            totalExpenditure(category).then(total => {
+                document.getElementById(category.toLowerCase().replace(' ', '-')).textContent = `Total ${category}: $${total.toFixed(2)}`;
+            });
+        });
+    }
+
+    function sortExpenses(sortOption) {
+        switch (sortOption) {
+            case 'dateN':
+                expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+                break;
+            case 'dateO':
+                expenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+                break;
+            case 'amountL':
+                expenses.sort((a, b) => a.amount - b.amount);
+                break;
+            case 'amountH':
+                expenses.sort((a, b) => b.amount - a.amount);
+                break;
+            case 'category':
+                expenses.sort((a, b) => a.category.localeCompare(b.category));
+                break;
+        }
+        displayExpenses();
+    }
+
+    function displayExpenses() {
+        const tbody = document.getElementById('expensesList');
+        tbody.innerHTML = '';
+        expenses.forEach(expense => displayExpenseItem(expense, tbody));
     }
 
     function handleSubmit(event) {
         event.preventDefault();
-        const categorySelect = document.getElementById('formSelect');
-        const category = categorySelect.options[categorySelect.selectedIndex].text
+        const category = document.getElementById('formSelect').value;
         const description = document.getElementById('description').value;
         const amount = document.getElementById('amount').value;
         const date = document.getElementById('date').value;
 
-        const newExpense = {
-            category,
-            description,
-            amount,
-            date
-        }
-        postExpenses(newExpense)
-        document.getElementById('description').value = '';
-        document.getElementById('amount').value = '';
-        document.getElementById('date').value = '';
-        categorySelect.selectedIndex = 0;
-
+        const newExpense = { category, description, amount, date };
+        postExpense(newExpense);
+        addExpenseForm.reset();
     }
-    function postExpenses(newExpense) {
+
+    function postExpense(newExpense) {
         fetch('http://localhost:3000/expenses', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newExpense)
         })
-            .then(res => res.json())
-            .then(expense => displayExpenseItem(expense))
-            .catch(error => console.error(`Posting Error: ${error}`))
+        .then(res => res.json())
+        .then(expense => {
+            expenses.push(expense);
+            displayExpenseItem(expense, document.getElementById('expensesList'));
+        })
+        .catch(error => console.error(`Posting Error: ${error}`));
     }
-    function displayExpenseItem(expense) {
-        const table = document.querySelector('table')
 
-        const tableBody = document.createElement('tr')
-        tableBody.dataset.id = expense.id
+    function displayExpenseItem(expense, tbody) {
+        const row = document.createElement('tr');
+        row.dataset.id = expense.id;
+        row.innerHTML = `
+            <td><input type="checkbox" onchange="toggleExpenseSelection(${expense.id}, this.checked)"></td>
+            <td ondblclick="editCell(this, 'category', ${expense.id})">${expense.category}</td>
+            <td ondblclick="editCell(this, 'description', ${expense.id})">${expense.description}</td>
+            <td ondblclick="editCell(this, 'amount', ${expense.id})">${expense.amount}</td>
+            <td ondblclick="editCell(this, 'date', ${expense.id})">${expense.date}</td>
+        `;
+        tbody.appendChild(row);
+    }
 
-        const selectCell = document.createElement('td')
-        const selectCheckbox = document.createElement('input')
-        selectCheckbox.type = 'checkbox';
-        selectCheckbox.addEventListener('change', (event) => {
-            toggleExpenseSelection(expense.id, event.target.checked);
+    window.editCell = function(cell, field, id) {
+        const input = document.createElement(field === 'amount' ? 'input' : field === 'date' ? 'input' : 'select');
+        input.value = cell.textContent;
+
+        if (field === 'category') {
+            input.innerHTML = `
+                <option>Groceries</option>
+                <option>Transport</option>
+                <option>Personal Care</option>
+                <option>Entertainment</option>
+                <option>Utilities</option>
+                <option>Other</option>
+            `;
+        } else if (field === 'amount') {
+            input.type = 'number';
+        } else if (field === 'date') {
+            input.type = 'date';
+        }
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const newValue = input.value;
+                updateExpenseField(id, field, newValue).then(() => {
+                    cell.textContent = newValue;
+                });
+            }
         });
-        selectCell.appendChild(selectCheckbox);
-        tableBody.appendChild(selectCell);
 
-        const categoryCell = document.createElement('td');
-        categoryCell.textContent = expense.category;
-        tableBody.appendChild(categoryCell);
+        cell.replaceWith(input);
+    }
 
-        const descriptionCell = document.createElement('td');
-        descriptionCell.textContent = expense.description;
-        tableBody.appendChild(descriptionCell);
-
-        const amountCell = document.createElement('td');
-        amountCell.textContent = expense.amount;
-        tableBody.appendChild(amountCell);
-
-        const dateCell = document.createElement('td');
-        dateCell.textContent = expense.date;
-        tableBody.appendChild(dateCell);
-
-        table.appendChild(tableBody)
+    function updateExpenseField(id, field, value) {
+        return fetch(`http://localhost:3000/expenses/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value })
+        }).then(res => res.json());
     }
 
     function toggleExpenseSelection(expenseId, isSelected) {
         if (isSelected) {
             selectedExpenses.push(expenseId);
         } else {
-            const index = selectedExpenses.indexOf(expenseId);
-            if (index !== -1) {
-                selectedExpenses.splice(index, 1);
-            }
+            selectedExpenses = selectedExpenses.filter(id => id !== expenseId);
         }
         deleteButton.disabled = selectedExpenses.length === 0;
     }
 
     function deleteSelectedExpenses() {
-        selectedExpenses.forEach(expenseId => {
-            const row = table.querySelector(`tr[data-id="${expenseId}"]`);
-            deleteExpense(expenseId, row);
+        selectedExpenses.forEach(id => {
+            fetch(`http://localhost:3000/expenses/${id}`, {
+                method: 'DELETE'
+            }).then(() => {
+                expenses = expenses.filter(expense => expense.id !== id);
+                displayExpenses();
+            });
         });
         selectedExpenses = [];
         deleteButton.disabled = true;
     }
 
-    function deleteExpense(expenseId, row) {
-        try {
-            fetch(`http://localhost:3000/expenses/${expenseId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(() => {
-                row.remove();
-            })
-            .catch(error => {
-                console.error(`Deleting Error: ${error}`);
-                alert('Error deleting expense. Please try again later.');
-            });
-        } catch (error) {
-            console.error(`Error occurred: ${error}`);
-            alert('An error occurred. Please try again later.');
-        }
-    }
-
-    function displayCurrentdate() {
-        const currentDate = document.getElementById('currentDate')
-        //Creating the date object
+    function displayCurrentDate() {
+        const currentDate = document.getElementById('currentDate');
         const date = new Date();
-        //Format the date
-        const formattedDate = new Intl.DateTimeFormat('en-US').format(date)
-        //Display current date in the page
-        currentDate.textContent = `Date: ${formattedDate}`
+        currentDate.textContent = `Date: ${new Intl.DateTimeFormat('en-US').format(date)}`;
     }
 
-    function editUserName() {
-        //get username element
-        const userName = document.getElementById('userName')
-        //check if there is a stored name in local storage
-        const storedName = localStorage.getItem('userName');
-        if (storedName) {
-            //if there is a stored name display it
-            userName.textContent = storedName;
-        }
-        //add a double click event listener to edit the name
-        userName.addEventListener('dblclick', (e) => {
-            //create an input element
-            const editName = document.createElement('input')
-            editName.type = 'text'
-            editName.value = userName.textContent;
-            userName.replaceWith(editName)
-            // Add a keypress event listener to the input element
-            editName.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const newval = editName.value;
-                    if (newval) {
-                        editName.replaceWith(newval)
-                        localStorage.setItem('userName', newval);
+    function loadAndDisplayChart() {
+        fetch('http://localhost:3000/expenses')
+            .then(response => response.json())
+            .then(data => {
+                const categoryTotals = data.reduce((acc, expense) => {
+                    acc[expense.category] = (acc[expense.category] || 0) + parseFloat(expense.amount);
+                    return acc;
+                }, {});
+
+                const categories = Object.keys(categoryTotals);
+                const amounts = Object.values(categoryTotals);
+
+                const ctx = document.getElementById('expenseChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: categories,
+                        datasets: [{
+                            data: amounts,
+                            backgroundColor: [
+                                '#FF6384', '#36A2EB', '#FFCE56', '#FF9F40', '#4BC0C0', '#9966FF'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: (tooltipItem) => {
+                                        return `${categories[tooltipItem.dataIndex]}: $${amounts[tooltipItem.dataIndex].toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        }
                     }
-                    else {
-                        editName.replaceWith(userName);
-                    }
-                }
+                });
             })
-        })
+            .catch(error => console.error('Error:', error));
     }
-})
-
-if (category && description && amount && date) {
-            const table = document.querySelector('table')
-
-            if (!table.querySelector('thead')) {
-                const thead = document.createElement('thead')
-        table.appendChild(thead)
-
-        const tr = document.createElement('tr')
-
-        const th = document.createElement('th')
-        th.textContent = ''
-        const th1 = document.createElement('th')
-        th1.textContent = 'Category'
-        const th2 = document.createElement('th')
-        th2.textContent = 'Description'
-        const th3 = document.createElement('th')
-        th3.textContent = 'Amount'
-        const th4 = document.createElement('th')
-        th4.textContent = 'Date'
-
-        tr.appendChild(th)
-        tr.appendChild(th1)
-        tr.appendChild(th2)
-        tr.appendChild(th3)
-        tr.appendChild(th4)
-        thead.appendChild(tr)
-        table.appendChild(thead)
-        }
-    
-        if (!table.querySelector('tbody')) {
-            const tbody = document.createElement('tbody')
-        table.appendChild('tbody')
-
-        }
-        let tbody = table.querySelector('tbody')
-        let row = document.createElement('tr')
-
-        const selectCell = document.createElement('td')
-        const selectCheckbox = document.createElement('input')
-        selectCheckbox.type = 'checkbox';
-        selectCheckbox.addEventListener('change', (event) => {
-            toggleExpenseSelection(expense.id, event.target.checked);
-        });
-        selectCell.appendChild(selectCheckbox);
-        row.appendChild(selectCell);
-
-        const categoryCell = document.createElement('td');
-        categoryCell.textContent = expense.category;
-        row.appendChild(categoryCell);
-
-        const descriptionCell = document.createElement('td');
-        descriptionCell.textContent = expense.description;
-        row.appendChild(descriptionCell);
-
-        const amountCell = document.createElement('td');
-        amountCell.textContent = expense.amount;
-        row.appendChild(amountCell);
-
-        const dateCell = document.createElement('td');
-        dateCell.textContent = expense.date;
-        row.appendChild(dateCell);
-
-        tbody.appendChild(row)
-
-        }
-
-
-        const thead = document.createElement('thead')
-        table.appendChild(thead)
-
-        const tr = document.createElement('tr')
-        thead.appendChild(tr)
-
-        const th = document.createElement('th')
-        th.textContent = ''
-        thead.appendChild(th)
-
-        const th1 = document.createElement('th')
-        th1.textContent = 'Category'
-        thead.appendChild(th1)
-
-        const th2 = document.createElement('th')
-        th2.textContent = 'Description'
-        thead.appendChild(th2)
-
-        const th3 = document.createElement('th')
-        th3.textContent = 'Amount'
-        thead.appendChild(th3)
-
-        const th4 = document.createElement('th')
-        th4.textContent = 'Date'
-        thead.appendChild(th4)
-
-        document.getElementById('description').value = '';
-        document.getElementById('amount').value = '';
-        document.getElementById('date').value = '';
-        categorySelect.selectedIndex = 0;
-
-        descriptionCell.addEventListener('dblclick', (e) => {
-            const editItem = document.createElement('input')
-            editItem.type = 'text'
-            editItem.value = descriptionCell.textContent
-            descriptionCell.replaceWith(editItem)
-            editItem.classList.add('td')
-
-            editItem.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const newval = editItem.value
-                    
-                    if (newval) {
-                        editItem.replaceWith(newval)
-                        editItem.classList.add('td')
-                        fetch(`http://localhost:3000/expenses/${expense.id}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({description: newval})
-                        })
-                        .then(res => res.json())
-                        .then(() => {descriptionCell.textContent = newval})
-                    }
-                    else {
-                        editItem.replaceWith(descriptionCell)
-                        editItem.classList.add('td')
-                    }
-                }
-            })
-        })
+});
