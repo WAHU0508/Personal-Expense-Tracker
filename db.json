@@ -55,6 +55,13 @@
       "description": "spotify",
       "amount": "500",
       "date": "2024-07-30"
+    },
+    {
+      "id": "8646",
+      "category": "Entertainment",
+      "description": "Attend otamatsuri",
+      "amount": "5",
+      "date": "2024-08-31"
     }
   ],
   "budget": [
