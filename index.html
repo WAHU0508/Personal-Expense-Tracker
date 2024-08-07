@@ -93,6 +93,39 @@
         </div>
     </header>
     <div class="content">
+
+
+      <!-- Records Button -->
+<button id="recordsButton" class="btn btn-primary">Records</button>
+
+<!-- Modal Structure -->
+<div id="recordsModal" class="modal fade" tabindex="-1" aria-labelledby="recordsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recordsModalLabel">Previous Records</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="summaryDropdown" class="dropdown mb-3">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        Select Month
+                    </button>
+                    <ul class="dropdown-menu" id="summaryDropdownMenu" aria-labelledby="dropdownMenuButton">
+                        <!-- Dropdown items will be populated by JavaScript -->
+                    </ul>
+                </div>
+                <div id="recordsContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
         <main>
             <div class="formAndTable">
                 <div class="userInfo">
@@ -197,6 +230,7 @@
         <p>&copy; 2024 Bucks Buddy. All rights</p>
     </footer>
     <script type="text/javascript" src="./src/index.js"></script>
+    <script src="/src/records.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
