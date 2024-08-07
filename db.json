@@ -17,7 +17,7 @@
     {
       "id": "30aa",
       "category": "Personal Care",
-      "description": "face wash",
+      "description": "face gel",
       "amount": "2500",
       "date": "2024-07-18"
     },
@@ -48,6 +48,19 @@
       "description": "Cereals",
       "amount": "570",
       "date": "2024-07-09"
+    },
+    {
+      "id": "a76d",
+      "category": "Entertainment",
+      "description": "spotify",
+      "amount": "500",
+      "date": "2024-07-30"
+    }
+  ],
+  "budget": [
+    {
+      "id": "1",
+      "monthlyBudget": "30000"
     }
   ]
 }

@@ -4,8 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteButton = document.getElementById('deleteButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
     const expenseChart = document.getElementById('expenseChart').getContext('2d');
-    const budgetForm = document.getElementById('budgetForm');
-    const budgetInput = document.getElementById('budgetInput');
+    const myMonthlyBudget = document.getElementById('monthlyBudget');
     const remainingBudgetDisplay = document.getElementById('remainingBudget');
 
     //Store selected expenses to delete them, expenses keyed in and initialize budget limit
@@ -91,9 +90,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Calculate and display the remaining budget
     function calculateRemainingBudget(totalExpenses) {
-        const remainingBudget = monthlyBudget - totalExpenses;
-        remainingBudgetDisplay.textContent = `Remaining Budget: $${remainingBudget.toFixed(2)}`;
+        // Function to update remaining budget
+        const updateRemainingBudget = () => {
+            const remainingBudget = monthlyBudget - totalExpenses;
+            remainingBudgetDisplay.textContent = `Remaining Budget: $${remainingBudget.toFixed(2)}`;
+        };
+    
+        // Initial fetch to get the budget from the server and set up the event listener
+        fetch('http://localhost:3000/budget/1')
+            .then(res => res.json())
+            .then(data => {
+                monthlyBudget = parseFloat(data.monthlyBudget); // Initialize monthlyBudget from the server data
+                myMonthlyBudget.textContent = data.monthlyBudget;
+    
+                // Initial update of the remaining budget
+                updateRemainingBudget();
+    
+                myMonthlyBudget.addEventListener('dblclick', () => {
+                    const editBudget = document.createElement('input');
+                    editBudget.type = 'number';
+                    editBudget.value = myMonthlyBudget.textContent;
+                    myMonthlyBudget.replaceWith(editBudget);
+    
+                    editBudget.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            const newBudget = editBudget.value.trim();
+                            if (newBudget !== '' && newBudget !== myMonthlyBudget.textContent) {
+                                fetch('http://localhost:3000/budget/1', {
+                                    method: 'PATCH',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({ monthlyBudget: newBudget })
+                                })
+                                    .then(res => res.json())
+                                    .then(budget => {
+                                        monthlyBudget = parseFloat(budget.monthlyBudget); // Update monthlyBudget variable
+                                        myMonthlyBudget.textContent = budget.monthlyBudget;
+                                        updateRemainingBudget(); // Update remaining budget after editing
+                                    })
+                                    .catch(error => console.error(`Error updating budget: ${error}`));
+                            }
+                            editBudget.replaceWith(myMonthlyBudget);
+                        }
+                    });
+                });
+            })
+            .catch(error => console.error(`Error fetching budget: ${error}`));
     }
+    
+    
 
     // Sort expenses based on selected option and display them
     function sortExpenses(sortOption) {
