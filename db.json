@@ -1,73 +1,73 @@
 {
-  "expenses": [
-    {
-      "id": "3772",
-      "category": "Transport",
-      "description": "Uber",
-      "amount": "1000",
-      "date": "2024-07-09"
-    },
-    {
-      "id": "fabe",
-      "category": "Entertainment",
-      "description": "Netflix",
-      "amount": "2",
-      "date": "2024-07-12"
-    },
-    {
-      "id": "30aa",
-      "category": "Personal Care",
-      "description": "face gel",
-      "amount": "2500",
-      "date": "2024-07-18"
-    },
-    {
-      "id": "9732",
-      "category": "Utilities",
-      "description": "water",
-      "amount": "500",
-      "date": "2024-07-03"
-    },
-    {
-      "id": "eef6",
-      "category": "Other",
-      "description": "Lending",
-      "amount": "2000",
-      "date": "2024-07-16"
-    },
-    {
-      "id": "a2ca",
-      "category": "Entertainment",
-      "description": "Showmax",
-      "amount": "300",
-      "date": "2024-07-09"
-    },
-    {
-      "id": "f82d",
-      "category": "Groceries",
-      "description": "Cereals",
-      "amount": "570",
-      "date": "2024-07-09"
-    },
-    {
-      "id": "a76d",
-      "category": "Entertainment",
-      "description": "spotify",
-      "amount": "500",
-      "date": "2024-07-30"
-    },
-    {
-      "id": "8646",
-      "category": "Entertainment",
-      "description": "Attend otamatsuri",
-      "amount": "5",
-      "date": "2024-08-31"
-    }
-  ],
-  "budget": [
+  "users": [
     {
       "id": "1",
-      "monthlyBudget": "30000"
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "password": "p123",
+      "monthlyBudget": 30000
+    },
+    {
+      "id": "2",
+      "name": "Jane Smith",
+      "email": "jane.smith@example.com",
+      "password": "p852",
+      "monthlyBudget": 20000
+    },
+    {
+      "id": "2b67",
+      "name": "Ian ",
+      "email": "gridge37@gmail.com",
+      "password": "p1234"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "91bd",
+      "category": "Entertainment",
+      "description": "spotify ",
+      "amount": "400",
+      "date": "2024-08-01"
+    },
+    {
+      "id": "2737",
+      "category": "Transport",
+      "description": "town ",
+      "amount": "500",
+      "date": "2024-08-07",
+      "userId": "2b67"
+    },
+    {
+      "id": "92bb",
+      "category": "Groceries",
+      "description": "cooking oil ",
+      "amount": "1500",
+      "date": "2024-08-03",
+      "userId": "2b67"
+    },
+    {
+      "id": "c032",
+      "category": "Utilities",
+      "description": "wifi",
+      "amount": "1500",
+      "date": "2024-08-30",
+      "userId": "2b67"
+    },
+    {
+      "id": "5714",
+      "category": "Personal Care",
+      "description": "skincare",
+      "amount": "5500",
+      "date": "2024-08-01",
+      "userId": "2"
+    },
+    {
+      "id": "7e61",
+      "category": "Groceries",
+      "description": "foodstuff",
+      "amount": "3500",
+      "date": "2024-08-01",
+      "userId": "1"
     }
   ]
 }

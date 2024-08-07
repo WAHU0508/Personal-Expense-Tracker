@@ -14,9 +14,9 @@
 <body>
     <header>
         <h1 id="appName">&#8492&#8492 Bucks Buddy</h1>
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-light"  data-bs-toggle="modal"
-            data-bs-target="#exampleModal">About</button>
+
+        <!-- About Button and Modal -->
+        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#exampleModal">About</button>
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -26,9 +26,9 @@
                     </div>
                     <div class="modal-body">
                         <h5>Bucks Buddy: Take Control Of Your Finances</h5>
-                        <p style="font-size: medium;">In today's fast-paced world, it's easy to lose track of where your money is going.
-                            That's where Bucks Buddy comes in - your personal expense tracker app that puts your back in the driver's
-                            seat of your financial journey.<br>
+                        <p style="font-size: medium;">
+                            In today's fast-paced world, it's easy to lose track of where your money is going.
+                            That's where Bucks Buddy comes in - your personal expense tracker app that puts you back in the driver's seat of your financial journey.<br>
                             It provides the following:
                             <ul>
                                 <li>Effortless Expense Tracking</li>
@@ -37,46 +37,12 @@
                             </ul>
                         </p>
                     </div>
-                    
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-light"  data-bs-toggle="modal"
-            data-bs-target="#modal2">Add Expenses</button>
-        <div class="modal fade" id="modal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="exampleModalLabel">Add Expenses</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>You can add expenses in the expenses form below. The expenses are added by considering
-                            the categoty of the expense, the description, the amount spent and the date of the expense.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn btn-light"  data-bs-toggle="modal"
-            data-bs-target="#modal3">View Expenses</button>
-        <div class="modal fade" id="modal3" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="exampleModalLabel">View Expenses</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>The expenses are displayed in a table. The view expenses section allows users to delete expenses
-                            and sort them by date, category, amount or date
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn btn-light"  data-bs-toggle="modal"
-            data-bs-target="#modal4">Contact us</button>
+
+        <!-- Contact Us Button and Modal -->
+        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modal4">Contact Us</button>
         <div class="modal fade" id="modal4" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -91,9 +57,73 @@
                 </div>
             </div>
         </div>
+
+        <!-- Login Button and Modal -->
+        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+        <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="loginModalLabel">Login</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="loginName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="loginName" name="loginName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginEmail" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="loginEmail" name="loginEmail" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="loginPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="loginPassword" name="loginPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Button and Modal -->
+        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="registerModalLabel">Register</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="registerName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="registerName" name="registerName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="registerEmail" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="registerEmail" name="registerEmail" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="registerPassword" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="registerPassword" name="registerPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="logout-container">
+            <button id="logoutButton" class="logout-button" onclick="logout()">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
     </header>
     <div class="content">
-
 
       <!-- Records Button -->
 <button id="recordsButton" class="btn btn-primary">Records</button>
@@ -122,8 +152,6 @@
         </div>
     </div>
 </div>
-
-
 
 
         <main>

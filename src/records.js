@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = new bootstrap.Modal(document.getElementById('recordsModal'));
     const recordsContent = document.getElementById('recordsContent');
     const summaryDropdownMenu = document.getElementById('summaryDropdownMenu');
-
+  
     // When the user clicks the button, open the modal
     recordsButton.addEventListener('click', () => {
         modal.show();
