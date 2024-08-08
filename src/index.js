@@ -94,8 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateRemainingBudget = () => {
             const remainingBudget = monthlyBudget - totalExpenses;
             remainingBudgetDisplay.textContent = `Remaining Budget: $${remainingBudget.toFixed(2)}`;
+            if(totalExpenses>=monthlyBudget){
+                alert("Oops!Looks like you have exhausted your monthly budget.")
+            }
         };
-    
         // Initial fetch to get the budget from the server and set up the event listener
         fetch('http://localhost:3000/budget/1')
             .then(res => res.json())
