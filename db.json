@@ -16,7 +16,7 @@
     },
     {
       "id": "2b67",
-      "name": "Ian ",
+      "name": "Ian",
       "email": "gridge37@gmail.com",
       "password": "p1234"
     }
@@ -25,14 +25,14 @@
     {
       "id": "91bd",
       "category": "Entertainment",
-      "description": "spotify ",
+      "description": "spotify",
       "amount": "400",
       "date": "2024-08-01"
     },
     {
       "id": "2737",
       "category": "Transport",
-      "description": "town ",
+      "description": "town",
       "amount": "500",
       "date": "2024-08-07",
       "userId": "2b67"
@@ -40,7 +40,7 @@
     {
       "id": "92bb",
       "category": "Groceries",
-      "description": "cooking oil ",
+      "description": "cooking oil",
       "amount": "1500",
       "date": "2024-08-03",
       "userId": "2b67"
@@ -52,6 +52,20 @@
       "amount": "1500",
       "date": "2024-08-30",
       "userId": "2b67"
+    },
+    {
+      "id": "8646",
+      "category": "Entertainment",
+      "description": "Attend otamatsuri",
+      "amount": "5",
+      "date": "2024-08-31"
+    },
+    {
+      "id": "2a74",
+      "category": "Other",
+      "description": "went to canada",
+      "amount": "23000",
+      "date": "2024-08-06"
     },
     {
       "id": "5714",

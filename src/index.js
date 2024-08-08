@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Get Elements from the HTML
+    // Elements from the HTML
     const addExpenseForm = document.getElementById('addExpenseForm');
     const deleteButton = document.getElementById('deleteButton');
     const sortOptions = document.querySelectorAll('#sortButton + .dropdown-menu a');
@@ -16,10 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let expenses = [];
     let monthlyBudget = 20000;
 
+    // Check if user is logged in
     function isLoggedIn() {
         return loggedInUserId !== null;
     }
 
+    // Check and fetch logged-in user's data
     function checkLoggedInStatus() {
         const storedUserId = localStorage.getItem('loggedInUserId');
         if (storedUserId) {
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Logout function
     function logout() {
         localStorage.removeItem('loggedInUserId');
         loggedInUserId = null;
@@ -40,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     logoutButton.addEventListener('click', logout);
 
-    // Register User
+    // User Registration
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(registerForm);
@@ -55,21 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData),
         })
-            .then(response => response.json())
-            .then(data => {
-                console.log('User registered:', data);
-                alert('User registered successfully');
-                registerForm.reset();
-                const regModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-                regModal.hide();
-            })
-            .catch(error => {
-                console.error('Error registering user:', error);
-                alert('Error registering user');
-            });
+        .then(response => response.json())
+        .then(data => {
+            alert('User registered successfully');
+            registerForm.reset();
+            const regModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+            regModal.hide();
+        })
+        .catch(error => {
+            console.error('Error registering user:', error);
+            alert('Error registering user');
+        });
     });
 
-    // Login User
+    // User Login
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const formData = new FormData(loginForm);
@@ -84,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (user) {
                     loggedInUserId = user.id;
                     localStorage.setItem('loggedInUserId', loggedInUserId);
-                    console.log('Logged in successfully:', user);
                     alert('Logged in successfully');
                     loginForm.reset();
                     const logModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
@@ -101,22 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // Fetch expenses and display them
-    checkLoggedInStatus();
-    displayCurrentDate();
-
-    // Add event listeners for form submissions, delete button, sort options, and budget form
-    addExpenseForm.addEventListener('submit', handleSubmit);
-    deleteButton.addEventListener('click', deleteSelectedExpenses);
-    sortOptions.forEach(option => {
-        option.addEventListener('click', (e) => sortExpenses(e.target.dataset.sort));
-    });
-    budgetForm.addEventListener('submit', handleSubmit);
-
-    // Initialize the expense chart
-    initializeChart();
-
-    // Fetch expenses from server
+    // Fetch expenses for the logged-in user
     function fetchExpenses() {
         if (!isLoggedIn()) {
             alert('Please log in to view expenses.');
@@ -134,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(`Fetching Error: ${error}`));
     }
 
-    // Calculate total expenditure and get total expenses filtered by category
+    // Calculate and update the total expenditure
     function totalExpenditure(category = null) {
         return new Promise((resolve, reject) => {
             if (!isLoggedIn()) {
@@ -159,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Update summary information for total expenses for all categories for the logged-in user
+    // Update the summary and remaining budget
     function updateSummary() {
         if (!isLoggedIn()) {
             console.log('User not logged in. Cannot update summary.');
@@ -179,21 +165,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }).catch(error => console.error(`Error updating ${category} total:`, error));
         });
     }
+
     // Calculate and display the remaining budget
     function calculateRemainingBudget(totalExpenses) {
-        // Function to update remaining budget
         const updateRemainingBudget = () => {
             const remainingBudget = monthlyBudget - totalExpenses;
             remainingBudgetDisplay.textContent = `Remaining Budget: $${remainingBudget.toFixed(2)}`;
+            if (totalExpenses >= monthlyBudget) {
+                alert("Oops! Looks like you have exhausted your monthly budget.");
+            }
         };
 
-        // Initial fetch to get the budget from the server and set up the event listener
         fetch('http://localhost:3000/budget/1')
             .then(res => res.json())
             .then(data => {
                 monthlyBudget = parseFloat(data.monthlyBudget);
                 myMonthlyBudget.textContent = data.monthlyBudget;
-
                 updateRemainingBudget();
 
                 myMonthlyBudget.addEventListener('dblclick', () => {
@@ -210,17 +197,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                     method: 'PATCH',
                                     headers: {
                                         'Content-Type': 'application/json',
-                                        'Accept': 'application/json'
                                     },
                                     body: JSON.stringify({ monthlyBudget: newBudget })
                                 })
-                                    .then(res => res.json())
-                                    .then(budget => {
-                                        monthlyBudget = parseFloat(budget.monthlyBudget);
-                                        myMonthlyBudget.textContent = budget.monthlyBudget;
-                                        updateRemainingBudget();
-                                    })
-                                    .catch(error => console.error(`Error updating budget: ${error}`));
+                                .then(res => res.json())
+                                .then(budget => {
+                                    monthlyBudget = parseFloat(budget.monthlyBudget);
+                                    myMonthlyBudget.textContent = budget.monthlyBudget;
+                                    updateRemainingBudget();
+                                })
+                                .catch(error => console.error(`Error updating budget: ${error}`));
                             }
                             editBudget.replaceWith(myMonthlyBudget);
                         }
@@ -230,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error(`Error fetching budget: ${error}`));
     }
 
-    // Sort expenses based on selected option and display them
+    // Sort expenses and update the display
     function sortExpenses(sortOption) {
         switch (sortOption) {
             case 'dateN':
@@ -252,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         displayExpenses();
     }
 
-    // Display the sort expenses in the table
+    // Display the expenses in the table
     function displayExpenses() {
         const tbody = document.querySelector('table tbody');
         tbody.innerHTML = '';
@@ -269,272 +255,190 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleSubmit(event) {
         event.preventDefault();
 
-        const categorySelect = document.getElementById('formSelect');
-        const category = categorySelect.options[categorySelect.selectedIndex].text;
-        const description = document.getElementById('description').value;
-        const amount = document.getElementById('amount').value;
-        const date = document.getElementById('date').value;
-
-        const newExpense = {
-            category,
-            description,
-            amount,
-            date,
-            userId: loggedInUserId
+        const formData = new FormData(addExpenseForm);
+        const expenseData = {
+            userId: loggedInUserId,
+            date: formData.get('date'),
+            category: formData.get('category'),
+            amount: parseFloat(formData.get('amount')),
+            notes: formData.get('notes'),
         };
-
-        postExpense(newExpense);
-        addExpenseForm.reset();
-    }
-
-    // Post new expense to server
-    function postExpense(newExpense) {
-        if (!isLoggedIn()) {
-            alert('Please log in to add expenses.');
-            return;
-        }
-
-        newExpense.userId = loggedInUserId;
 
         fetch('http://localhost:3000/expenses', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(newExpense)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(expenseData),
         })
-        .then(res => res.json())
-        .then(expense => {
-            expenses.push(expense);
+        .then(response => response.json())
+        .then(data => {
+            expenses.push(data);
             displayExpenses();
             updateSummary();
             updateChart();
-            fetchExpenses();
+            addExpenseForm.reset();
         })
-        .catch(error => console.error(`Posting Error: ${error}`));
-    }
-
-    // Create a table row for an expense
-    function createExpenseRow(expense) {
-        const row = document.createElement('tr');
-        row.dataset.id = expense.id;
-
-        const checkboxCell = document.createElement('td');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.addEventListener('change', () => toggleExpenseSelection(expense.id, checkbox.checked));
-        checkboxCell.appendChild(checkbox);
-        row.appendChild(checkboxCell);
-
-        ['category', 'description', 'amount', 'date'].forEach(key => {
-            const cell = document.createElement('td');
-            cell.textContent = expense[key];
-            cell.addEventListener('dblclick', () => editCell(cell, key, expense));
-            row.appendChild(cell);
+        .catch(error => {
+            console.error('Error adding expense:', error);
+            alert('Error adding expense');
         });
-
-        return row;
     }
 
-    // Edit a table cell
-    function editCell(cell, key, expense) {
-        const oldValue = cell.textContent;
-        const input = document.createElement('input');
-        input.type = key === 'amount' ? 'number' : key === 'date' ? 'date' : 'text';
-        input.value = oldValue;
+    addExpenseForm.addEventListener('submit', handleSubmit);
 
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const newValue = input.value.trim();
-                if (newValue !== oldValue) {
-                    updateExpense(expense.id, { [key]: newValue });
-                } else {
-                    cell.textContent = newValue;
-                    input.replaceWith(cell);
-                }
-            }
-        });
-
-        cell.textContent = '';
-        cell.appendChild(input);
-        input.focus();
-    }
-
-    // Update an expense on the server once editing takes place
-    function updateExpense(expenseId, updates) {
-        if (!isLoggedIn()) {
-            alert('Please log in to update expenses.');
-            return;
-        }
-
-        fetch(`http://localhost:3000/expenses/${expenseId}?userId=${loggedInUserId}`, {
+    // Update an existing expense in the database
+    function updateExpense(expenseId, updatedExpense) {
+        fetch(`http://localhost:3000/expenses/${expenseId}`, {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(updates)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedExpense),
         })
-            .then(res => res.json())
-            .then(updatedExpense => {
-                const index = expenses.findIndex(expense => expense.id === updatedExpense.id);
-                if (index !== -1) {
-                    expenses[index] = updatedExpense;
-                    displayExpenses();
-                    updateSummary();
-                     fetchExpenses();
-                }
-            })
-            .catch(error => console.error(`Error updating expense: ${error}`));
+        .then(response => response.json())
+        .then(data => {
+            const index = expenses.findIndex(expense => expense.id === expenseId);
+            expenses[index] = data;
+            displayExpenses();
+            updateSummary();
+            updateChart();
+        })
+        .catch(error => {
+            console.error('Error updating expense:', error);
+            alert('Error updating expense');
+        });
     }
 
-    // Toggle the selection of an expense in order to delete entry
-    function toggleExpenseSelection(expenseId, isSelected) {
-        if (isSelected) {
-            selectedExpenses.push(expenseId);
-        } else {
-            const index = selectedExpenses.indexOf(expenseId);
-            if (index !== -1) {
-                selectedExpenses.splice(index, 1);
+    // Create an expense row in the table
+    function createExpenseRow(expense) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${expense.date}</td>
+            <td>${expense.category}</td>
+            <td>${expense.amount}</td>
+            <td>${expense.notes}</td>
+        `;
+        tr.setAttribute('data-id', expense.id);
+
+        tr.addEventListener('click', () => {
+            const isSelected = selectedExpenses.includes(expense.id);
+            if (isSelected) {
+                selectedExpenses = selectedExpenses.filter(id => id !== expense.id);
+                tr.classList.remove('selected');
+            } else {
+                selectedExpenses.push(expense.id);
+                tr.classList.add('selected');
             }
-        }
-        deleteButton.disabled = selectedExpenses.length === 0;
+        });
+
+        tr.addEventListener('dblclick', () => {
+            editExpenseRow(tr, expense);
+        });
+
+        return tr;
+    }
+
+    // Edit an expense row in the table
+    function editExpenseRow(tr, expense) {
+        tr.innerHTML = `
+            <td><input type="date" value="${expense.date}" class="edit-date"></td>
+            <td><input type="text" value="${expense.category}" class="edit-category"></td>
+            <td><input type="number" value="${expense.amount}" class="edit-amount"></td>
+            <td><input type="text" value="${expense.notes}" class="edit-notes"></td>
+        `;
+
+        const dateInput = tr.querySelector('.edit-date');
+        const categoryInput = tr.querySelector('.edit-category');
+        const amountInput = tr.querySelector('.edit-amount');
+        const notesInput = tr.querySelector('.edit-notes');
+
+        dateInput.addEventListener('blur', () => {
+            expense.date = dateInput.value;
+            updateExpense(expense.id, expense);
+        });
+
+        categoryInput.addEventListener('blur', () => {
+            expense.category = categoryInput.value;
+            updateExpense(expense.id, expense);
+        });
+
+        amountInput.addEventListener('blur', () => {
+            expense.amount = parseFloat(amountInput.value);
+            updateExpense(expense.id, expense);
+        });
+
+        notesInput.addEventListener('blur', () => {
+            expense.notes = notesInput.value;
+            updateExpense(expense.id, expense);
+        });
+
+        dateInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') dateInput.blur();
+        });
+
+        categoryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') categoryInput.blur();
+        });
+
+        amountInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') amountInput.blur();
+        });
+
+        notesInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') notesInput.blur();
+        });
     }
 
     // Delete selected expenses
-    function deleteSelectedExpenses() {
-        selectedExpenses.forEach(expenseId => {
-            deleteExpense(expenseId);
-        });
-        selectedExpenses = [];
-        deleteButton.disabled = true;
-    }
-
-    // Update server when an entry is deleted by user
-    function deleteExpense(expenseId) {
-        if (!isLoggedIn()) {
-            alert('Please log in to delete expenses.');
-            return;
+    deleteButton.addEventListener('click', () => {
+        const confirmed = confirm('Are you sure you want to delete selected expenses?');
+        if (confirmed) {
+            selectedExpenses.forEach(expenseId => {
+                fetch(`http://localhost:3000/expenses/${expenseId}`, {
+                    method: 'DELETE'
+                })
+                .then(() => {
+                    expenses = expenses.filter(expense => expense.id !== expenseId);
+                    selectedExpenses = [];
+                    displayExpenses();
+                    updateSummary();
+                    updateChart();
+                })
+                .catch(error => {
+                    console.error(`Error deleting expense: ${error}`);
+                    alert('Error deleting expense');
+                });
+            });
         }
+    });
 
-        fetch(`http://localhost:3000/expenses/${expenseId}?userId=${loggedInUserId}`, {
-            method: 'DELETE'
-        })
-            .then(() => {
-                expenses = expenses.filter(expense => expense.id !== expenseId);
-                displayExpenses();
-                updateSummary();
-                 fetchExpenses();
-            })
-            .catch(error => console.error(`Error deleting expense: ${error}`));
-    }
-
-    // Display the current date
-    function displayCurrentDate() {
-        const currentDate = document.getElementById('currentDate');
-        const date = new Date();
-        const formattedDate = new Intl.DateTimeFormat('en-US').format(date);
-        currentDate.textContent = `Date: ${formattedDate}`;
-    }
-
-    // Initialize the expense chart. Sections of the pie chart initialization
-    function initializeChart() {
-        const categories = ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'];
-        /*calculate the total amounts for each expense category by filtering 
-        the expenses and then reducing them to get the sum*/
-        const amounts = categories.map(category =>
-            expenses.filter(expense => expense.category === category)
-                .reduce((total, expense) => total + parseFloat(expense.amount), 0)
-        );
-
-        const chart = new Chart(expenseChart, {
-            type: 'pie',
-            data: {
-                labels: categories,
-                datasets: [{
-                    label: 'Total Expenses by Category',
-                    data: amounts,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(153, 102, 255, 0.7)',
-                        'rgba(255, 159, 64, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Total Expenses by Category'
-                    }
-                }
-            }
-        });
-    }
-
-    // Update the expense chart
+    // Update chart with current expenses
     function updateChart() {
         const categories = ['Groceries', 'Transport', 'Personal Care', 'Entertainment', 'Utilities', 'Other'];
-        const amounts = categories.map(category =>
-            expenses.filter(expense => expense.category === category)
-                .reduce((total, expense) => total + parseFloat(expense.amount), 0)
-        );
+        const categoryTotals = categories.map(category => {
+            return expenses.filter(expense => expense.category === category).reduce((acc, expense) => acc + expense.amount, 0);
+        });
 
-        const chart = new Chart(expenseChart, {
+        if (expenseChartInstance) {
+            expenseChartInstance.destroy();
+        }
+
+        expenseChartInstance = new Chart(expenseChart, {
             type: 'pie',
             data: {
                 labels: categories,
                 datasets: [{
-                    label: 'Total Expenses by Category',
-                    data: amounts,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(153, 102, 255, 0.7)',
-                        'rgba(255, 159, 64, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
+                    data: categoryTotals,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6347', '#36A2EB', '#FF6384'],
+                }],
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Total Expenses by Category'
-                    }
-                }
-            }
         });
     }
+
+    // Initial setup
+    sortOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            const sortOption = e.target.dataset.sort;
+            sortExpenses(sortOption);
+        });
+    });
+
+    checkLoggedInStatus();
 });
