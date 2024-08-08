@@ -4,7 +4,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #f4f4f9;
-  padding-top: 60px; /* Add padding to prevent content from hiding behind the fixed header */
+  padding-top: 60px; 
 }
 
 main {
@@ -25,7 +25,7 @@ header {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000; /* Ensure the header is above other content */
+  z-index: 1000; 
 }
 
 header h1 {
