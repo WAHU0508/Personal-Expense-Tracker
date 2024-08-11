@@ -62,6 +62,13 @@
       "description": "Attend otamatsuri",
       "amount": "5",
       "date": "2024-08-31"
+    },
+    {
+      "id": "2a74",
+      "category": "Other",
+      "description": "went to canada",
+      "amount": "23000",
+      "date": "2024-08-06"
     }
   ],
   "budget": [
